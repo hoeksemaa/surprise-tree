@@ -1,0 +1,6 @@
+{
+  "buildCommand": "cd chatbot && npm install && npm run build",
+  "outputDirectory": "chatbot/.next",
+  "installCommand": "cd chatbot && npm install",
+  "framework": "nextjs"
+}
