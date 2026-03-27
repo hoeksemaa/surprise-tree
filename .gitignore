@@ -1,3 +1,7 @@
 .env
 .venv/
 __pycache__/
+node_modules/
+.next/
+chatbot/.next/
+chatbot/node_modules/

@@ -6,15 +6,15 @@ import warnings
 
 from dotenv import load_dotenv
 from Bio import Entrez
+from openai import OpenAI
 from pinecone import Pinecone, ServerlessSpec
-from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
 
 load_dotenv()
 
 PINECONE_INDEX = "pubmed-articles"
-EMBED_MODEL = "all-MiniLM-L6-v2"
-EMBED_DIMS = 384
+EMBED_MODEL = "text-embedding-3-small"
+EMBED_DIMS = 1536
 ABSTRACT_MAX_CHARS = 8000
 FETCH_BATCH = 200
 EMBED_BATCH = 100
@@ -166,7 +166,7 @@ def main():
 
     # Init
     Entrez.email = os.environ.get("ENTREZ_EMAIL", "surprise-tree@example.com")
-    embed_model = SentenceTransformer(EMBED_MODEL)
+    oai = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
     pc = Pinecone(api_key=os.environ["PINECONE_API_KEY"])
 
     # Create index if needed
@@ -203,9 +203,9 @@ def main():
         batch = articles[i : i + EMBED_BATCH]
         texts = [f"{a['title']}. {a['abstract']}" for a in batch]
         try:
-            embeddings = embed_model.encode(texts).tolist()
-            for art, emb in zip(batch, embeddings):
-                embedded.append((art, emb))
+            resp = oai.embeddings.create(model=EMBED_MODEL, input=texts)
+            for art, item in zip(batch, resp.data):
+                embedded.append((art, item.embedding))
         except Exception as e:
             warnings.warn(f"Embedding batch at index {i} failed: {e}")
 
